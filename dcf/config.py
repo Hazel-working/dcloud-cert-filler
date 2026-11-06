@@ -170,7 +170,7 @@ def load_settings(
         discovered=discovered,
         unlisted=unlisted,
         notes=tuple(notes),
-        base_url=str(raw_sel.get("base_url", "https://dev.dcloud.net.cn/pages/app/list/info?appid={appid}")),
+        base_url=str(raw_sel.get("base_url", "https://dev.dcloud.net.cn/pages/app/detail/info?appid={appid}")),
         wait_ms=int(raw_sel.get("wait_ms", 1500)),
         fields=fields,
     )

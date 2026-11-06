@@ -1,6 +1,6 @@
 # 表单定位配置。DCloud 改版导致定位失效时，先跑 `python -m dcf probe` 观察真实 placeholder，
 # 再回来改这里；不要改代码。每项可写多个 CSS 选择器（CSS selector），按顺序尝试第一个命中的。
-base_url: "https://dev.dcloud.net.cn/pages/app/list/info?appid={appid}"
+base_url: "https://dev.dcloud.net.cn/pages/app/detail/info?appid={appid}"
 wait_ms: 1500
 
 fields:

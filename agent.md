@@ -61,6 +61,9 @@
 - `config/selectors.yaml` 的 placeholder **按截图推断，未在真实 DCloud 页面验证**，须由用户在打包机跑 `python -m dcf probe` 校准；`dcf/console_gen.py` 的通道 A 正则同样未经真实页面验证，首次使用最可能卡在这里。
 - 15:50 真实页面实测：Console 通道 4 个字段全部返回「未找到输入框」，解析层正常（4 个签名值都已输出），失败点只在 DOM（文档对象模型）定位。已给生成脚本内嵌失败诊断（输入框清单 / iframe / 页面文字），`findInput` 增加 `aria-label`，并修掉「已填入」在全部失败时仍无条件打印的误报；JS 语法用 `node --check` 校验过。根因待用户回传诊断，候选：只读态需点编辑、SPA 未渲染完、Console 上下文选到 iframe、DCloud 改版导致正则不匹配。
 - 日志显示页面 appid 为 `__UNI__1D0D817`，与 `config/apps.yaml` 里绑定的 `__UNI__1000B17` **不一致**（后者是按截图抄的，可能抄错）。补 appid 前必须让用户从真实地址栏复制核对，不要沿用旧值。
+- 16:02 真实 DOM（文档对象模型）诊断结果：`URL=https://dev.dcloud.net.cn/pages/app/detail/info?appid=__UNI__1D0D817`，**是 `detail/info` 不是 `list/info`**，已修 `config/selectors.yaml` 与 `dcf/config.py` 默认值。`INPUTS=7`、`IFRAMES=0`，且 7 个 input 的 placeholder / name / id / aria-label **全部为空**。
+  - 结论：通道 A 按 placeholder 正则定位在这套页面上必然全失败，与网络、依赖、Python 版本无关。**不要继续在 placeholder 上调优**，改为按 label 文本、父容器结构或 input 顺序定位；需先拿到每个 input 的 `type` / 可见性 / `outerHTML` 片段，以及字段名标签的父元素结构。
+  - 更要紧的是确认页面是否处于**编辑态**：若 `document.body.innerText` 里没有「包名 / SHA1」等字样，说明表单根本没渲染，要先点页面上的「修改 / 编辑」按钮。
 - 两条填表通道的定位规则未共用一份配置（详见第 5 节），是待统一项，不是已实现能力。
 - 离线依赖发布在 GitHub Release **tag `offline-v1`**，两个资产：精简包 `dcloud-cert-filler-lite-bundle.zip`（761 KB，仅 PyYAML，**主推**）与完整包 `dcloud-cert-filler-offline-bundle.zip`（77 MB，含 Playwright/pytest）。77 MB 的包**不进 Git 历史**（>50 MB 会拖慢 clone）；精简包另复制一份在仓库 `offline/` 目录作为备用下载入口。README 步骤 1 有两个直链与 SHA-256。
 - **通道 A（`scan` / `check` / `console`）唯一第三方依赖是 PyYAML**：`dcf/cli.py` 顶层只导入 `config` / `console_gen` / `parser`，`filler` 与 `report` 在 `probe` / `run` 里才延迟导入。不要给这三条命令新增第三方依赖，否则精简包失效。
