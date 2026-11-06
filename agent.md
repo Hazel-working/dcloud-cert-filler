@@ -64,9 +64,13 @@
 - 16:02 真实 DOM（文档对象模型）诊断结果：`URL=https://dev.dcloud.net.cn/pages/app/detail/info?appid=__UNI__1D0D817`，**是 `detail/info` 不是 `list/info`**，已修 `config/selectors.yaml` 与 `dcf/config.py` 默认值。`INPUTS=7`、`IFRAMES=0`，且 7 个 input 的 placeholder / name / id / aria-label **全部为空**。
   - 结论：通道 A 按 placeholder 正则定位在这套页面上必然全失败，与网络、依赖、Python 版本无关。**不要继续在 placeholder 上调优**，改为按 label 文本、父容器结构或 input 顺序定位；需先拿到每个 input 的 `type` / 可见性 / `outerHTML` 片段，以及字段名标签的父元素结构。
   - 更要紧的是确认页面是否处于**编辑态**：若 `document.body.innerText` 里没有「包名 / SHA1」等字样，说明表单根本没渲染，要先点页面上的「修改 / 编辑」按钮。
-- 两条填表通道的定位规则未共用一份配置（详见第 5 节），是待统一项，不是已实现能力。
+- 通道 A / C 共用 `dcf/console_gen.py` 的定位逻辑；通道 B 仍单独用 `config/selectors.yaml`（基于 placeholder，对 uni-app 页面无效），**是待统一项，不是已实现能力**。
 - 离线依赖发布在 GitHub Release **tag `offline-v1`**，两个资产：精简包 `dcloud-cert-filler-lite-bundle.zip`（761 KB，仅 PyYAML，**主推**）与完整包 `dcloud-cert-filler-offline-bundle.zip`（77 MB，含 Playwright/pytest）。77 MB 的包**不进 Git 历史**（>50 MB 会拖慢 clone）；精简包另复制一份在仓库 `offline/` 目录作为备用下载入口。README 步骤 1 有两个直链与 SHA-256。
 - **通道 A（`scan` / `check` / `console`）唯一第三方依赖是 PyYAML**：`dcf/cli.py` 顶层只导入 `config` / `console_gen` / `parser`，`filler` 与 `report` 在 `probe` / `run` 里才延迟导入。不要给这三条命令新增第三方依赖，否则精简包失效。
 - 若 `requirements.txt` 或支持的 Python 版本变更：重新生成两个包、用 `gh release upload offline-v1 ... --clobber` 覆盖资产，并同步更新 README 与 `offline/` 里的文件、链接和校验值。
 - `tests/` 的解析层与目录发现单测已写，但**从未在开发机执行过**（见第 3 条）。
 - `README.md` 与 `config/apps.yaml` 里的用户名、盘符描述以打包机 Administrator 为准。
+- **16:30 新增通道 C：Tampermonkey（油猴用户脚本）**。模板 `userscript/dcloud-filler.user.js`；`python -m dcf console` 额外生成 `dist/dcloud-filler.user.js`（把模板里的 `var EMBEDDED_DATA = null;` 占位行替换成真实 DATA）。通用版靠页面「导入数据」粘 `console_payload.js` 全文并存 `GM_setValue`，内嵌版无需导入。
+  - 约束：`console_gen.py` 的 `EMBED_PLACEHOLDER` 字符串必须与模板里的那一行完全一致，否则生成器失效（已用 try/except 容错，不影响 Console 脚本生成）。
+  - 通道 A 与 C **共用 `findInput` 定位逻辑**（uni-app 标签文本三级策略），改定位必须同步两处并都用 `node --check` 校验 JS 语法。
+  - 用户脚本不点保存、不联网、不上传数据；自动填入默认关闭，监听 SPA（单页应用）URL 变化自动重新识别 appid；数据只存本机 `GM_setValue` / localStorage。

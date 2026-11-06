@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 from .config import ROOT, AppEntry, Settings, enabled_apps, load_settings
-from .console_gen import write_payload
+from .console_gen import write_payload, write_userscript
 from .parser import CertInfo, public_fields
 
 # 与 scripts/start_chrome_debug.bat 里的 %LOCALAPPDATA% 保持完全一致，
@@ -149,11 +149,17 @@ def cmd_probe(args, settings: Settings, entries) -> int:
 
 
 def cmd_console(args, entries) -> int:
-    path = write_payload(entries, Path(args.out) / "console_payload.js")
+    out = Path(args.out)
+    path = write_payload(entries, out / "console_payload.js")
     print(f"已生成：{path}")
-    print("用法：打开某个应用的信息页 → F12 → Console → 全选粘贴脚本 → 回车。")
-    print("已绑定 appid 的页面自动匹配；未绑定的会弹窗列出所有包，输入序号选择。")
-    print("切到另一个应用页再粘贴一次即可。只填不保存，核对后手动提交。")
+    try:
+        user_path = write_userscript(entries, out / "dcloud-filler.user.js")
+        print(f"已生成：{user_path}  （油猴脚本，已内嵌数据）")
+    except Exception as exc:
+        print(f"[提示] 油猴脚本未生成：{exc}（不影响 Console 通道）")
+    print("Console 用法：打开应用信息页 → F12 → Console → 全选粘贴 console_payload.js → 回车。")
+    print("油猴用法：把 dcloud-filler.user.js 装进 Tampermonkey，之后打开应用页自动/一键填入。")
+    print("两条通道都只填不保存，核对后手动提交。")
     return 0
 
 

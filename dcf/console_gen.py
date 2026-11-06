@@ -10,8 +10,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .config import AppEntry
+from .config import ROOT, AppEntry
 from .parser import CertInfo
+
+USERSCRIPT_TEMPLATE = ROOT / "userscript" / "dcloud-filler.user.js"
+EMBED_PLACEHOLDER = "  var EMBEDDED_DATA = null;"
 
 _TEMPLATE = r"""(function () {
   'use strict';
@@ -158,7 +161,7 @@ _TEMPLATE = r"""(function () {
 """
 
 
-def build_payload(entries: list[tuple[AppEntry, CertInfo]]) -> str:
+def _data_dict(entries: list[tuple[AppEntry, CertInfo]]) -> dict:
     rows: list[dict] = []
     by_appid: dict[str, dict] = {}
     for app, info in entries:
@@ -173,12 +176,31 @@ def build_payload(entries: list[tuple[AppEntry, CertInfo]]) -> str:
         rows.append(row)
         if app.bound:
             by_appid[app.appid] = row
-    data = {"byAppid": by_appid, "list": rows}
-    return _TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False, indent=2))
+    return {"byAppid": by_appid, "list": rows}
+
+
+def build_payload(entries: list[tuple[AppEntry, CertInfo]]) -> str:
+    return _TEMPLATE.replace("__DATA__", json.dumps(_data_dict(entries), ensure_ascii=False, indent=2))
+
+
+def build_userscript(entries: list[tuple[AppEntry, CertInfo]]) -> str:
+    """把真实数据内嵌进油猴脚本模板，生成开箱即用的 .user.js。"""
+    template = USERSCRIPT_TEMPLATE.read_text(encoding="utf-8")
+    if EMBED_PLACEHOLDER not in template:
+        raise ValueError(f"用户脚本模板缺少占位行：{USERSCRIPT_TEMPLATE}")
+    blob = json.dumps(_data_dict(entries), ensure_ascii=False, indent=2)
+    return template.replace(EMBED_PLACEHOLDER, "  var EMBEDDED_DATA = " + blob + ";", 1)
 
 
 def write_payload(entries: list[tuple[AppEntry, CertInfo]], out_path: str | Path) -> Path:
     path = Path(out_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(build_payload(entries), encoding="utf-8")
+    return path
+
+
+def write_userscript(entries: list[tuple[AppEntry, CertInfo]], out_path: str | Path) -> Path:
+    path = Path(out_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(build_userscript(entries), encoding="utf-8")
     return path
