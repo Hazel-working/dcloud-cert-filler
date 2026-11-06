@@ -51,9 +51,19 @@ python -m pip install -r requirements.txt
 python -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-仍报证书错误就再加 `--trusted-host pypi.tuna.tsinghua.edu.cn`；机器上开着 VPN（虚拟专用网络）或系统代理时，先关掉再试。想一次配好，执行 `python -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple`，之后所有 `pip install` 自动走镜像。
+若明确是**证书校验失败**（不是 `SSLEOFError`）可再加 `--trusted-host pypi.tuna.tsinghua.edu.cn`；机器上开着 VPN（虚拟专用网络）或系统代理时，先关掉再试。若 pip 报 `from versions: none`（索引页被代理改写）或该镜像不通，换阿里云 `https://mirrors.aliyun.com/pypi/simple/`。想一次配好，执行 `python -m pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/`，之后所有 `pip install` 自动走镜像。
 
-打包机**完全不能联网**时：在有网的机器上执行 `pip download -r requirements.txt -d wheels -i https://pypi.tuna.tsinghua.edu.cn/simple`，把 `wheels` 文件夹拷过去，再执行 `python -m pip install --no-index --find-links=wheels -r requirements.txt`（两台机器的 Python 大版本尽量一致，PyYAML 有平台相关 wheel）。
+### 打包机完全不能联网：直接用现成离线包
+
+不用自己折腾 `pip download`，仓库已经把依赖打包好放在 Release（版本发布）里，公开可下：
+
+- **下载地址**：[dcloud-cert-filler-offline-bundle.zip](https://github.com/Hazel-working/dcloud-cert-filler/releases/download/offline-v1/dcloud-cert-filler-offline-bundle.zip)（77 MB）
+- **SHA-256**：`0c6976f3587325b2fa147c0e70dadd516d610e4d771c9b2a1f237ef63c4905e0`
+- **内容**：24 个 wheel（预编译二进制包）。PyYAML 与 greenlet 覆盖 **Python 3.9–3.13 / Windows 64 位**，另含 playwright、pytest 及全部依赖；附 `install.bat`
+- **用法**：下载 → 解压 → 双击 `install.bat` → 看到 `Done.` → 回到项目目录跑 `python -m dcf scan`。全程不联网，也不读 `requirements.txt`
+- `install.bat` 分两步装，第二步（playwright / pytest）是可选的，失败不影响通道 A
+
+想自己准备也可以：在有网的机器执行 `pip download -r requirements.txt -d wheels -i https://mirrors.aliyun.com/pypi/simple/`，把 `wheels` 拷过去执行 `python -m pip install --no-index --find-links=wheels -r requirements.txt`（两台机器的 Python 大版本尽量一致，PyYAML 有平台相关 wheel）。
 
 **成功标志**：`python -V` 显示 3.9 及以上；pip 安装没有红色报错。如果提示「python 不是内部或外部命令」，说明装 Python 时没勾 Add Python to PATH，重装并勾上即可。
 
