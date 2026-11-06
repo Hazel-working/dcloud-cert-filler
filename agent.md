@@ -59,6 +59,8 @@
 
 - 5 个包：`com.beikeyanshou.www`、`com.ritaiyanshou.www`、`com.test.demo`、`com.xingquangceshi.www`、`com.yanshou.www`。只有第 1 个已绑 `__UNI__1000B17`，其余 4 个 appid 待用户补。
 - `config/selectors.yaml` 的 placeholder **按截图推断，未在真实 DCloud 页面验证**，须由用户在打包机跑 `python -m dcf probe` 校准；`dcf/console_gen.py` 的通道 A 正则同样未经真实页面验证，首次使用最可能卡在这里。
+- 15:50 真实页面实测：Console 通道 4 个字段全部返回「未找到输入框」，解析层正常（4 个签名值都已输出），失败点只在 DOM（文档对象模型）定位。已给生成脚本内嵌失败诊断（输入框清单 / iframe / 页面文字），`findInput` 增加 `aria-label`，并修掉「已填入」在全部失败时仍无条件打印的误报；JS 语法用 `node --check` 校验过。根因待用户回传诊断，候选：只读态需点编辑、SPA 未渲染完、Console 上下文选到 iframe、DCloud 改版导致正则不匹配。
+- 日志显示页面 appid 为 `__UNI__1D0D817`，与 `config/apps.yaml` 里绑定的 `__UNI__1000B17` **不一致**（后者是按截图抄的，可能抄错）。补 appid 前必须让用户从真实地址栏复制核对，不要沿用旧值。
 - 两条填表通道的定位规则未共用一份配置（详见第 5 节），是待统一项，不是已实现能力。
 - 离线依赖发布在 GitHub Release **tag `offline-v1`**，两个资产：精简包 `dcloud-cert-filler-lite-bundle.zip`（761 KB，仅 PyYAML，**主推**）与完整包 `dcloud-cert-filler-offline-bundle.zip`（77 MB，含 Playwright/pytest）。77 MB 的包**不进 Git 历史**（>50 MB 会拖慢 clone）；精简包另复制一份在仓库 `offline/` 目录作为备用下载入口。README 步骤 1 有两个直链与 SHA-256。
 - **通道 A（`scan` / `check` / `console`）唯一第三方依赖是 PyYAML**：`dcf/cli.py` 顶层只导入 `config` / `console_gen` / `parser`，`filler` 与 `report` 在 `probe` / `run` 里才延迟导入。不要给这三条命令新增第三方依赖，否则精简包失效。

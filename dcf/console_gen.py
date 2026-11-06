@@ -28,10 +28,10 @@ _TEMPLATE = r"""(function () {
     var lines = DATA.list.map(function (x, i) {
       return (i + 1) + '. ' + x.package + (x.name ? '  (' + x.name + ')' : '');
     }).join('\n');
-    var hint = appid
+    var pickHint = appid
       ? '当前 appid=' + appid + ' 未绑定包名。'
       : '当前 URL 里没有 appid。';
-    var pick = window.prompt(hint + '\n请选择要填入的包（输入序号）：\n' + lines, '1');
+    var pick = window.prompt(pickHint + '\n请选择要填入的包（输入序号，从 1 开始）：\n' + lines, '1');
     if (!pick) { console.warn('[DCloud filler] 已取消。'); return; }
     var idx = parseInt(pick, 10) - 1;
     if (isNaN(idx) || !DATA.list[idx]) {
@@ -59,13 +59,16 @@ _TEMPLATE = r"""(function () {
   function findInput(re) {
     var list = document.querySelectorAll('input, textarea');
     for (var i = 0; i < list.length; i++) {
-      var hint = (list[i].placeholder || '') + ' ' + (list[i].name || '') + ' ' + (list[i].id || '');
-      if (re.test(hint)) return list[i];
+      var el = list[i];
+      var hint = (el.placeholder || '') + ' ' + (el.name || '') + ' ' +
+                 (el.id || '') + ' ' + (el.getAttribute('aria-label') || '');
+      if (re.test(hint)) return el;
     }
     return null;
   }
 
   var report = [];
+  var missing = 0;
   FIELDS.forEach(function (f) {
     if (!f.value) {
       report.push({ 字段: f.label, 结果: f.required ? '缺失' : '可选，已跳过', 值: '' });
@@ -73,6 +76,7 @@ _TEMPLATE = r"""(function () {
     }
     var el = findInput(f.re);
     if (!el) {
+      missing += 1;
       report.push({ 字段: f.label, 结果: '未找到输入框', 值: f.value.slice(0, 24) + '...' });
       return;
     }
@@ -86,7 +90,31 @@ _TEMPLATE = r"""(function () {
 
   console.table(report);
   console.log('[DCloud filler] 已选包：' + row.package + (row.name ? '（' + row.name + '）' : '') + '，页面 appid：' + (appid || '无'));
-  console.warn('[DCloud filler] 已填入，未点击保存。请人工核对后手动提交。');
+
+  if (missing > 0) {
+    var inputs = document.querySelectorAll('input, textarea');
+    var diag = [];
+    diag.push('页面 URL: ' + location.href);
+    diag.push('页面标题: ' + document.title);
+    diag.push('输入框总数: ' + inputs.length);
+    for (var k = 0; k < inputs.length && k < 60; k++) {
+      var item = inputs[k];
+      diag.push('  [' + k + '] ' + item.tagName + ' type=' + (item.type || '') +
+        ' ph="' + (item.placeholder || '') + '" name=' + (item.name || '') +
+        ' id=' + (item.id || '') + ' aria=' + (item.getAttribute('aria-label') || '') +
+        ' visible=' + !!(item.offsetWidth || item.offsetHeight));
+    }
+    var frames = document.querySelectorAll('iframe');
+    var frameList = [];
+    for (var j = 0; j < frames.length; j++) frameList.push(frames[j].src || '(no src)');
+    diag.push('iframe 数: ' + frames.length + (frameList.length ? ' -> ' + frameList.join(' , ') : ''));
+    diag.push('页面含「包名」文字: ' + (document.body.innerText.indexOf('包名') >= 0));
+    diag.push('页面含「SHA256」文字: ' + (document.body.innerText.indexOf('SHA256') >= 0));
+    console.warn('[DCloud filler] 有 ' + missing + ' 个字段未找到输入框。诊断信息（请整段复制给维护者）：\n' + diag.join('\n'));
+    console.error('[DCloud filler] 填写未完成，请勿保存。');
+  } else {
+    console.warn('[DCloud filler] 已填入，未点击保存。请人工核对后手动提交。');
+  }
 })();
 """
 
