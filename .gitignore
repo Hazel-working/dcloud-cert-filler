@@ -1,0 +1,5 @@
+# config/apps.yaml 不含密码，随项目一起拷到打包机，故不忽略
+dist/
+__pycache__/
+.pytest_cache/
+*.pyc

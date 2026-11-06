@@ -1,0 +1,29 @@
+# 应用清单模板。实际使用请编辑 config/apps.yaml。
+#
+# 可扩展性设计：新增一个包，只需要在 bindings 里加一行，不用改任何代码。
+#   - 包名 = output 根目录下的文件夹名
+#   - txt 路径由脚本按内容自动发现，不依赖文件名（变更信息 / 変更信息 / 证书信息 都能认）
+#   - appid 只用于 Playwright 自动切换应用页；Console 通道不要求 appid
+version: 2
+
+scan:
+  # 打包机上的证书输出根目录，每个包一个同名子文件夹
+  root: "F:/数据/生成证书/output"
+  # 在子文件夹里按此通配找候选文件；用 "*" 表示不挑扩展名，纯靠内容判断
+  txt_glob: "*"
+  # 候选文件里含这个标记才算打包信息文件（避免把 README、日志误认成证书信息）
+  content_marker: "SHA256"
+
+bindings:
+  # appid：DCloud 应用信息页地址栏 ?appid= 的值；留空表示暂未绑定
+  # package：output 下的文件夹名，同时也是要填进表单的包名
+  # name：仅用于日志与报告，可留空
+  - appid: "__UNI__1000B17"
+    package: "com.beikeyanshou.www"
+    name: "测试星泉"
+    enabled: true
+
+  - appid: ""
+    package: "com.example.second"
+    name: ""
+    enabled: true

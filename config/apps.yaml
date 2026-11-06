@@ -1,0 +1,40 @@
+# 本机实际清单（打包机 Administrator 上运行）。
+# 新增包：复制一个 bindings 条目，改 package 和 appid 即可；txt 会自动发现。
+#
+# 当前 5 个包来自 F:\数据\生成证书\output\。
+# 除第 1 个外 appid 均留空：打开对应 DCloud 应用信息页，从地址栏 ?appid= 复制过来。
+# 未绑 appid 的包仍可用 Console 通道填写（粘贴脚本后在弹窗里选包），
+# 只是不能用 Playwright 通道自动切换页面。
+version: 2
+
+scan:
+  root: "F:/数据/生成证书/output"
+  # 通配所有文件，靠内容识别；连后缀被隐藏或写错的文件名也能认
+  txt_glob: "*"
+  content_marker: "SHA256"
+
+bindings:
+  - appid: "__UNI__1000B17"
+    package: "com.beikeyanshou.www"
+    name: "测试星泉"
+    enabled: true
+
+  - appid: ""
+    package: "com.ritaiyanshou.www"
+    name: ""
+    enabled: true
+
+  - appid: ""
+    package: "com.test.demo"
+    name: ""
+    enabled: true
+
+  - appid: ""
+    package: "com.xingquangceshi.www"
+    name: ""
+    enabled: true
+
+  - appid: ""
+    package: "com.yanshou.www"
+    name: ""
+    enabled: true

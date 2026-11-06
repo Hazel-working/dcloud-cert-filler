@@ -1,0 +1,13 @@
+包名: com.beikeyanshou.ww
+w
+证书文件: F:\生成证书\output\com.beikeyanshou.www.keystore
+别名: com.beikeyanshou.www
+密码: 123456
+有效期（天）：36500
+生成时间: 2026-11-05 15:31:31
+------------------------------------------
+Android 应用签名MD5: B6:8F:8E:F4:0E:A8:F1:D5:23:CE:A9:05:8C:F8:7D:07
+Android 应用签名SHA1: 06:39:72:E8:9A:26:F7:41:91:7C:C6:20:E6:2A:A9:80:E9:A8:E6:8F
+Android 应用签名SHA256:
+8D:07:27:3F:27:7A:C4:1A:DA:C0:2E:EC:8D:A8:72:8F:90:89:F3:53:02:2A:CC:F0:8F:69:AE:F1:32:6A:1
+0;EC

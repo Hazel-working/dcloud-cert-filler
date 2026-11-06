@@ -1,0 +1,6 @@
+# Python 3.10+ 必需。用 CDP 挂接系统 Chrome 时，不需要执行 playwright install chromium。
+PyYAML>=6.0
+playwright>=1.40
+
+# 仅跑解析层单测需要，生产运行可不装
+pytest>=7.0

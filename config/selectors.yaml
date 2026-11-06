@@ -1,0 +1,30 @@
+# 表单定位配置。DCloud 改版导致定位失效时，先跑 `python -m dcf probe` 观察真实 placeholder，
+# 再回来改这里；不要改代码。每项可写多个 CSS 选择器（CSS selector），按顺序尝试第一个命中的。
+base_url: "https://dev.dcloud.net.cn/pages/app/list/info?appid={appid}"
+wait_ms: 1500
+
+fields:
+  package:
+    label: "包名"
+    required: true
+    selectors:
+      - "input[placeholder='请输入包名']"
+      - "input[placeholder*='包名']"
+  sha1:
+    label: "Android 应用签名SHA1"
+    required: true
+    selectors:
+      - "input[placeholder='Android 应用签名 SHA1']"
+      - "input[placeholder*='SHA1']"
+  md5:
+    label: "Android 应用签名MD5"
+    required: false
+    selectors:
+      - "input[placeholder='Android 应用签名 MD5']"
+      - "input[placeholder*='MD5']"
+  sha256:
+    label: "Android 应用签名SHA256"
+    required: true
+    selectors:
+      - "input[placeholder='Android 应用签名 SHA256']"
+      - "input[placeholder*='SHA256']"
