@@ -56,10 +56,47 @@ _TEMPLATE = r"""(function () {
     el.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
+  // DCloud 页面是 uni-app 组件：输入框本身无任何属性，
+  // 字段名在独立的 <uni-text>/<span> 节点里，因此必须按标签文本定位。
   function findInput(re) {
-    var list = document.querySelectorAll('input, textarea');
-    for (var i = 0; i < list.length; i++) {
-      var el = list[i];
+    var SEL = 'input.uni-input-input, input[type=text], textarea';
+    var inputs = [].slice.call(document.querySelectorAll(SEL));
+    var flat = [].slice.call(document.querySelectorAll('*'));
+    function pos(el) { return flat.indexOf(el); }
+
+    var leaves = [].slice.call(document.querySelectorAll('span, uni-text, label, text, view, div, td, th, p'))
+      .filter(function (n) {
+        if (n.children.length) return false;
+        var t = (n.innerText || n.textContent || '').trim();
+        // 排除顶部「离线打包 Key 规则」那段长说明（里面也含 包名 / SHA1）
+        return t && t.length <= 60 && t.indexOf('规则') < 0 &&
+               t.indexOf('名额') < 0 && re.test(t);
+      });
+
+    // 策略 1：向上找「恰好包含 1 个输入框」的祖先容器（通常是 form-item）
+    for (var a = 0; a < leaves.length; a++) {
+      var box = leaves[a].parentElement;
+      for (var up = 0; up < 8 && box; up++, box = box.parentElement) {
+        var inBox = box.querySelectorAll(SEL);
+        if (inBox.length === 1) return inBox[0];
+        if (inBox.length > 1) break;
+      }
+    }
+
+    // 策略 2：DOM 顺序上离字段名最近的输入框
+    var best = Infinity, hit = null;
+    leaves.forEach(function (n) {
+      var p = pos(n);
+      inputs.forEach(function (inp) {
+        var d = pos(inp) - p;
+        if (d !== 0 && Math.abs(d) < best) { best = Math.abs(d); hit = inp; }
+      });
+    });
+    if (hit) return hit;
+
+    // 策略 3：保底，回到原生属性匹配
+    for (var i = 0; i < inputs.length; i++) {
+      var el = inputs[i];
       var hint = (el.placeholder || '') + ' ' + (el.name || '') + ' ' +
                  (el.id || '') + ' ' + (el.getAttribute('aria-label') || '');
       if (re.test(hint)) return el;
@@ -81,9 +118,11 @@ _TEMPLATE = r"""(function () {
       return;
     }
     setNativeValue(el, f.value);
+    var order = [].slice.call(document.querySelectorAll('input.uni-input-input, input[type=text], textarea')).indexOf(el);
     report.push({
       字段: f.label,
       结果: el.value === f.value ? '回读一致' : '回读不一致',
+      目标: '#' + order,
       值: f.value.slice(0, 24) + '...'
     });
   });
