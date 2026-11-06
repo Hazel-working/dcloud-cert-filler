@@ -19,6 +19,7 @@
 
   var STORE_KEY = 'dcf_data_v1';
   var AUTO_KEY = 'dcf_auto_v1';
+  var SRC_NAME_KEY = 'dcf_src_name_v1';
   var SEL = 'input.uni-input-input, input[type=text], textarea';
 
   var FIELDS = [
@@ -97,7 +98,7 @@
   function extractData(src) {
     src = String(src || '').trim();
     var start = -1;
-    var m = src.match(/var\s+DATA\s*=\s*/);
+    var m = src.match(/var\s+(?:EMBEDDED_)?DATA\s*=\s*/);
     if (m) start = src.indexOf('{', m.index + m[0].length);
     else if (src.charAt(0) === '{') start = 0;
     if (start < 0) throw new Error('没找到 DATA 对象，请粘贴 console_payload.js 全文');
@@ -196,8 +197,10 @@
       });
       sel.value = String(selected);
     }
+    var srcName = store.get(SRC_NAME_KEY, '');
     panel.querySelector('#dcf-status').textContent =
       (data && data.list ? '已导入 ' + data.list.length + ' 个包' : '尚未导入数据') +
+      (srcName ? ' · 来源 ' + srcName : '') +
       ' · appid ' + (currentAppid() || '无');
     panel.querySelector('#dcf-auto').checked = store.get(AUTO_KEY, '0') === '1';
   }
@@ -234,10 +237,13 @@
     box.innerHTML =
       '<div style="font-weight:600;margin-bottom:6px">导入打包数据</div>' +
       '<div style="color:#57606a;font-size:12px;margin-bottom:8px">' +
-        '把 dist/console_payload.js 全文粘到下面（Ctrl+A / Ctrl+C 即可），或只粘 DATA 对象。' +
-        '数据只保存在本机浏览器，不上传。' +
+        '推荐：直接选 dist/console_payload.js（或内嵌数据版 dcloud-filler.user.js），选完自动导入。' +
+        '也可以把文件全文粘到下面。数据只存在本机浏览器，不上传。' +
       '</div>' +
-      '<textarea id="dcf-src" style="width:100%;height:250px;box-sizing:border-box;font:12px monospace"></textarea>' +
+      '<div style="margin-bottom:8px">' +
+        '<input type="file" id="dcf-file" accept=".js,.json,.txt" style="font-size:12px;width:100%">' +
+      '</div>' +
+      '<textarea id="dcf-src" style="width:100%;height:210px;box-sizing:border-box;font:12px monospace"></textarea>' +
       '<div id="dcf-err" style="color:#dc2626;min-height:18px;margin-top:6px;font-size:12px"></div>' +
       '<div style="text-align:right;margin-top:6px">' +
         '<button id="dcf-cancel" style="padding:5px 14px">取消</button> ' +
@@ -246,18 +252,41 @@
     mask.appendChild(box);
     document.body.appendChild(mask);
 
+    function accept(src, name) {
+      var data = extractData(src);
+      if (!data.list || !data.list.length) throw new Error('文件里没有可用的包');
+      store.set(STORE_KEY, JSON.stringify(data));
+      store.set(SRC_NAME_KEY, name);
+      mask.remove();
+      refresh();
+      log('已从 ' + name + ' 导入 ' + data.list.length + ' 个包，点「填入当前页」即可');
+    }
+
     box.querySelector('#dcf-cancel').onclick = function () { mask.remove(); };
     box.querySelector('#dcf-ok').onclick = function () {
       try {
-        var data = extractData(box.querySelector('#dcf-src').value);
-        if (!data.list || !data.list.length) throw new Error('DATA 里没有可用的包');
-        store.set(STORE_KEY, JSON.stringify(data));
-        mask.remove();
-        refresh();
-        log('已导入 ' + data.list.length + ' 个包，点「填入当前页」即可');
+        accept(box.querySelector('#dcf-src').value, '粘贴内容');
       } catch (e) {
         box.querySelector('#dcf-err').textContent = e.message;
       }
+    };
+    box.querySelector('#dcf-file').onchange = function () {
+      var f = this.files && this.files[0];
+      if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        var text = String(reader.result || '');
+        box.querySelector('#dcf-src').value = text;
+        try {
+          accept(text, f.name);
+        } catch (e) {
+          box.querySelector('#dcf-err').textContent = e.message + '（也可手动粘贴内容后点「保存」）';
+        }
+      };
+      reader.onerror = function () {
+        box.querySelector('#dcf-err').textContent = '读取文件失败，请改用手动粘贴';
+      };
+      reader.readAsText(f, 'utf-8');
     };
   };
 

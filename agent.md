@@ -74,3 +74,5 @@
   - 约束：`console_gen.py` 的 `EMBED_PLACEHOLDER` 字符串必须与模板里的那一行完全一致，否则生成器失效（已用 try/except 容错，不影响 Console 脚本生成）。
   - 通道 A 与 C **共用 `findInput` 定位逻辑**（uni-app 标签文本三级策略），改定位必须同步两处并都用 `node --check` 校验 JS 语法。
   - 用户脚本不点保存、不联网、不上传数据；自动填入默认关闭，监听 SPA（单页应用）URL 变化自动重新识别 appid；数据只存本机 `GM_setValue` / localStorage。
+  - 16:43 导入面板新增「选择文件」（File API，文件接口）：用户主动选 `dist/console_payload.js` 或内嵌版 `dcloud-filler.user.js` 即自动导入，不需要 `file://` 权限、不需要复制粘贴全文；`extractData` 同时识别 `var DATA =` 与 `var EMBEDDED_DATA =`，并用括号计数截取完整对象。面板状态显示数据来源文件名。
+  - **浏览器沙箱禁止油猴脚本自动读取任意本地路径**（如 `D:\wcx\...\dist`）。`file://` + `@resource` + 「允许访问文件网址」理论可行但 Chrome 经常拦截，**不要作为默认方案**；把人工操作压到「数据变化时点一次选文件」即可。日常填写零命令。
