@@ -333,7 +333,7 @@ dcloud-cert-filler/
 | `python 不是内部或外部命令` | 装 Python 时没勾 Add Python to PATH，重装并勾选 |
 | `python --version` 报 `Unknown option: -e` | 多半敲成了单横线 `-version`，CPython 会把它拆成 `-v -e -r ...`，遇到不认识的 `-e` 就报错。改用 `python -V` 或 `python -c "import sys;print(sys.version)"` |
 | pip 报 `SSLEOFError` / `Could not fetch URL https://pypi.org` / `No matching distribution found` | TLS 握手被切断，不是包缺失。换镜像 `-i https://pypi.tuna.tsinghua.edu.cn/simple`；关掉 VPN / 系统代理再试；或用离线 wheel 安装（见步骤 1） |
-| `扫描根目录不存在` | 改 `config/apps.yaml` 的 `scan.root`，确认打包机 F 盘路径 |
+| `扫描根目录不存在或不可访问` / `发现 0 个含打包信息的包` | ① 确认**这台机器**上确实有证书输出目录（txt 和浏览器必须在同一台机器）；在资源管理器里打开该目录、从地址栏复制真实路径，改 `config/apps.yaml` 的 `scan.root`，并把 `\` 换成 `/`。② 若 CMD 标题是「管理员」且 F 盘是映射网络驱动器（网络映射盘），UAC（用户账户控制）隔离会导致管理员会话看不到映射盘——换**普通 CMD** 重跑 `python -m dcf scan`，用 `net use` 可确认是否为映射盘。③ 逐级 `dir F:\`、`dir "F:\数据"` 定位是哪一层路径不同 |
 | `未找到含 SHA256 的打包信息 txt` | txt 不在包文件夹第一层，或内容不含 `SHA256` 标记；检查 `scan.root` / `scan.txt_glob` / `content_marker` |
 | `SHA256 长度异常` | 记事本自动换行或复制不全。取原始 txt，不要从截图或 WPS 复制 |
 | `包名格式不合法` / 包名不一致 | 文件夹名与 txt 里的包名不同，统一其中一处 |
