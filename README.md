@@ -31,7 +31,7 @@
 
 | 项 | 要不要 | 说明 |
 | --- | --- | --- |
-| Python **3.10 或更高** | 要 | 代码用了 3.10 起支持的类型注解语法。去 python.org 下 64 位安装包，安装时**勾选 Add Python to PATH**（添加到环境变量） |
+| Python **3.9 或更高** | 要 | 所有模块都启用了 `from __future__ import annotations`，类型注解延迟求值，3.9 可运行；推荐 3.10+ 正式版。打包机当前是 `3.9.0rc2`（预发布版），能跑就不必重装。若确需安装，记得**勾选 Add Python to PATH**（添加到环境变量） |
 | `PyYAML` | 要 | 读两个 yaml 配置文件 |
 | `playwright` | 要 | 挂接浏览器、填表（浏览器自动化框架） |
 | `pytest` | 可选 | 只跑解析层单测才需要 |
@@ -55,7 +55,7 @@ python -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/s
 
 打包机**完全不能联网**时：在有网的机器上执行 `pip download -r requirements.txt -d wheels -i https://pypi.tuna.tsinghua.edu.cn/simple`，把 `wheels` 文件夹拷过去，再执行 `python -m pip install --no-index --find-links=wheels -r requirements.txt`（两台机器的 Python 大版本尽量一致，PyYAML 有平台相关 wheel）。
 
-**成功标志**：`python --version` 显示 3.10 及以上；pip 安装没有红色报错。如果提示「python 不是内部或外部命令」，说明装 Python 时没勾 Add Python to PATH，重装并勾上即可。
+**成功标志**：`python -V` 显示 3.9 及以上；pip 安装没有红色报错。如果提示「python 不是内部或外部命令」，说明装 Python 时没勾 Add Python to PATH，重装并勾上即可。
 
 > 只有改用 `--driver persistent`（让脚本自己启动浏览器）时，才需要额外执行 `python -m playwright install chromium`。默认 `--driver cdp` 不需要。
 
@@ -315,6 +315,7 @@ dcloud-cert-filler/
 | 现象 | 处理 |
 | --- | --- |
 | `python 不是内部或外部命令` | 装 Python 时没勾 Add Python to PATH，重装并勾选 |
+| `python --version` 报 `Unknown option: -e` | 多半敲成了单横线 `-version`，CPython 会把它拆成 `-v -e -r ...`，遇到不认识的 `-e` 就报错。改用 `python -V` 或 `python -c "import sys;print(sys.version)"` |
 | pip 报 `SSLEOFError` / `Could not fetch URL https://pypi.org` / `No matching distribution found` | TLS 握手被切断，不是包缺失。换镜像 `-i https://pypi.tuna.tsinghua.edu.cn/simple`；关掉 VPN / 系统代理再试；或用离线 wheel 安装（见步骤 1） |
 | `扫描根目录不存在` | 改 `config/apps.yaml` 的 `scan.root`，确认打包机 F 盘路径 |
 | `未找到含 SHA256 的打包信息 txt` | txt 不在包文件夹第一层，或内容不含 `SHA256` 标记；检查 `scan.root` / `scan.txt_glob` / `content_marker` |

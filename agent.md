@@ -11,7 +11,7 @@
 - **项目整个文件夹拷到打包机、在打包机上单机运行，不需要本机与打包机之间传数据、不需要后台服务、不需要两台机器协作。**
 - 因此不得引入：消息队列、HTTP 服务、共享目录同步、文件传输脚本、跨机剪贴板、常驻守护进程，也不得把「从另一台电脑取 txt」写进设计。
 - txt 数据源与 DCloud 浏览器页面都在**同一台打包机**。`config/apps.yaml` 的 `scan.root` 是打包机本地路径（`F:/数据/生成证书/output`）。
-- 打包机环境极简：Python 3.10+、`PyYAML`、`playwright`（`pytest` 仅单测用）。主通道 CDP（Chrome DevTools Protocol，Chrome 调试协议）挂接系统 Chrome，**不需要** `playwright install chromium`；只有 `--driver persistent`（持久化上下文）才需要。
+- 打包机环境极简：Python **3.9+**（打包机当前为 `3.9.0rc2` 预发布版）、`PyYAML`、`playwright`（`pytest` 仅单测用）。主通道 CDP（Chrome DevTools Protocol，Chrome 调试协议）挂接系统 Chrome，**不需要** `playwright install chromium`；只有 `--driver persistent`（持久化上下文）才需要。
 
 ## 2. 机器与用户
 
@@ -45,7 +45,8 @@
 - 签名规范化：剔除所有非十六进制字符后按 MD5 16 组 / SHA1 20 组 / SHA256 32 组校验。记事本自动换行会从**字节中间**折断 SHA256，且折行行本身含冒号、易被误判成「字段行」——改解析器必须重跑 `tests/`。
 - **通道 B（Playwright）** 的定位规则外置在 `config/selectors.yaml`，用 CSS selector（CSS 选择器）按 placeholder（占位提示文本）定位，可写多个候选，改版只改配置。
 - **通道 A（Console）** 的定位正则目前硬编码在 `dcf/console_gen.py` 的 `FIELDS`，与 `selectors.yaml` **尚未共用**。这是已知不一致（见第 7 节），改版时两处都要考虑；若要统一，应让 `build_payload()` 接收 `settings.fields` 并把选择器内嵌进生成的 JS，同时保留 placeholder 正则作为兜底，不要只改一处。
-- Windows 路径在 YAML 里统一正斜杠 `/`。Python 3.10+。`.bat` 内只用 ASCII 文本，避免中文在非 UTF-8 控制台乱码。
+- Windows 路径在 YAML 里统一正斜杠 `/`。Python **3.9+ 即可**——所有含类型注解的模块都启用了 `from __future__ import annotations`，`str | None` 等注解在 3.9 下不求值；不要在代码里新增未延迟求值的 3.10+ 语法。`.bat` 内只用 ASCII 文本，避免中文在非 UTF-8 控制台乱码。
+- `3.9.0rc2` 是预发布版，部分包的 `Requires-Python >=3.9` 可能因 rc 版本号被拒；PyYAML 要求 `>=3.8` 不受影响。通道 A 只依赖 PyYAML，playwright/pytest 装不上不阻塞。
 - 面向用户的文字里，技术英文术语首次出现要括号汉化。
 
 ## 6. 文档分工（不要复制粘贴大段重复内容）
