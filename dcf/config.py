@@ -122,7 +122,7 @@ def load_settings(
 
     scan_raw = raw_apps.get("scan") or {}
     scan = ScanConfig(
-        root=str(scan_raw.get("root", "F:/数据/生成证书/output")),
+        root=str(scan_raw.get("root", "F:/生成证书/output")),
         txt_glob=str(scan_raw.get("txt_glob", "*")),
         content_marker=str(scan_raw.get("content_marker", "SHA256")),
     )

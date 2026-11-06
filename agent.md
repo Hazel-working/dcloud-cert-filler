@@ -10,7 +10,7 @@
 
 - **项目整个文件夹拷到打包机、在打包机上单机运行，不需要本机与打包机之间传数据、不需要后台服务、不需要两台机器协作。**
 - 因此不得引入：消息队列、HTTP 服务、共享目录同步、文件传输脚本、跨机剪贴板、常驻守护进程，也不得把「从另一台电脑取 txt」写进设计。
-- txt 数据源与 DCloud 浏览器页面都在**同一台打包机**。`config/apps.yaml` 的 `scan.root` 是打包机本地路径（`F:/数据/生成证书/output`）。
+- txt 数据源与 DCloud 浏览器页面都在**同一台打包机**。`config/apps.yaml` 的 `scan.root` 是打包机本地路径（`F:/生成证书/output`）。**注意 `数据 (F:)` 是 F 盘卷标、不是路径中的一级目录**，真实结构为 `F:\生成证书\output\<包名>\`，不要写成 `F:\数据\生成证书\output`（曾因此多写一层导致扫描到 0 个包）。
 - 打包机环境极简：Python **3.9+**（打包机当前为 `3.9.0rc2` 预发布版）、`PyYAML`、`playwright`（`pytest` 仅单测用）。主通道 CDP（Chrome DevTools Protocol，Chrome 调试协议）挂接系统 Chrome，**不需要** `playwright install chromium`；只有 `--driver persistent`（持久化上下文）才需要。
 
 ## 2. 机器与用户
