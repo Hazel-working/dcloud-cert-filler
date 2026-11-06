@@ -199,6 +199,8 @@ $$('input,textarea').map((e,i)=>i+': '+(e.placeholder||'(无)')+' | name='+(e.na
 
 数据更新（换证书 / 新增包）：通用版点「导入数据」重新选一次文件；内嵌版重跑 `python -m dcf console` 并重新装脚本。**日常填写不需要跑任何命令**，只有数据变了才做这一步。
 
+**不想敲命令**：把 `scripts/refresh-dcloud-data.bat` 拷到**桌面**，双击即可。它会自己进项目目录、读取 txt、校验签名并覆盖生成 `dist/console_payload.js` 与 `dist/dcloud-filler.user.js`；成功后把 `console_payload.js` 的完整路径复制到剪贴板，接着在油猴面板点「导入数据」→「选择文件」→ 文件名框 `Ctrl+V` 即可。窗口会停留显示新文件的时间与大小；失败时也会停住说明原因，**不会静默覆盖成空文件**。项目目录不是 `D:\wcx\dcloud-cert-filler-main` 时，用记事本改 bat 顶部的 `set "PROJ=..."` 一行。
+
 > 浏览器沙箱不允许脚本自动读取 `D:\...\dist` 这类本地路径，所以首次和数据更新时需要你**点一次选文件**（或重新生成脚本）。Tampermonkey 的 `file://` 资源 + 「允许访问文件网址」理论上能自动读，但 Chrome 经常拦截，不作为默认方案。
 
 ### 三条通道怎么选
@@ -316,6 +318,7 @@ dcloud-cert-filler/
 │   ├── cli.py                    编排：扫描 → 解析 → 校验 → 填写 → 人工确认 → 报告
 │   └── __main__.py               支持 python -m dcf
 ├── scripts/start_chrome_debug.bat 启动带调试端口的专用 Chrome
+├── scripts/refresh-dcloud-data.bat 双击刷新 dist 数据（可拷到桌面）
 ├── userscript/dcloud-filler.user.js  Tampermonkey 通用脚本模板
 ├── offline/                      精简离线包（761 KB，随仓库提供，备用下载入口）
 ├── tests/                        解析层与目录发现单测 + 脱敏样例

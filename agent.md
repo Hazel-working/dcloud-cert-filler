@@ -76,3 +76,5 @@
   - 用户脚本不点保存、不联网、不上传数据；自动填入默认关闭，监听 SPA（单页应用）URL 变化自动重新识别 appid；数据只存本机 `GM_setValue` / localStorage。
   - 16:43 导入面板新增「选择文件」（File API，文件接口）：用户主动选 `dist/console_payload.js` 或内嵌版 `dcloud-filler.user.js` 即自动导入，不需要 `file://` 权限、不需要复制粘贴全文；`extractData` 同时识别 `var DATA =` 与 `var EMBEDDED_DATA =`，并用括号计数截取完整对象。面板状态显示数据来源文件名。
   - **浏览器沙箱禁止油猴脚本自动读取任意本地路径**（如 `D:\wcx\...\dist`）。`file://` + `@resource` + 「允许访问文件网址」理论可行但 Chrome 经常拦截，**不要作为默认方案**；把人工操作压到「数据变化时点一次选文件」即可。日常填写零命令。
+- **17:00 新增 `scripts/refresh-dcloud-data.bat`**（用户要求「放桌面双击就刷新」）：自动 `pushd` 项目目录 → `python -m dcf console` → 覆盖生成 dist 两个文件 → 显示新文件大小/时间 → 把 `console_payload.js` 路径写进剪贴板（`<nul set /p | clip`，无尾随换行）→ `pause` 停留。失败时保留旧文件、不静默覆盖。
+  - 顶部 `set "PROJ=D:\wcx\dcloud-cert-filler-main"` 是**唯一机器相关项**，路径变了改这一行；bat 内容全 ASCII 避免 CMD 编码问题，不依赖自身所在位置（可放桌面、可改名）。同一份文件也放在工作区根目录供直接交付。
