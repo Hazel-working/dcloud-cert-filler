@@ -53,15 +53,20 @@ python -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/s
 
 若明确是**证书校验失败**（不是 `SSLEOFError`）可再加 `--trusted-host pypi.tuna.tsinghua.edu.cn`；机器上开着 VPN（虚拟专用网络）或系统代理时，先关掉再试。若 pip 报 `from versions: none`（索引页被代理改写）或该镜像不通，换阿里云 `https://mirrors.aliyun.com/pypi/simple/`。想一次配好，执行 `python -m pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/`，之后所有 `pip install` 自动走镜像。
 
-### 打包机完全不能联网：直接用现成离线包
+### 打包机完全不能联网：下载离线包
 
-不用自己折腾 `pip download`，仓库已经把依赖打包好放在 Release（版本发布）里，公开可下：
+**默认下精简包就够了。** 通道 A 的三条命令（`scan` / `check` / `console`）只需要 PyYAML 一个包——`dcf/cli.py` 顶层不导入 Playwright，后者只在 `probe` / `run` 里才加载。
 
-- **下载地址**：[dcloud-cert-filler-offline-bundle.zip](https://github.com/Hazel-working/dcloud-cert-filler/releases/download/offline-v1/dcloud-cert-filler-offline-bundle.zip)（77 MB）
-- **SHA-256**：`0c6976f3587325b2fa147c0e70dadd516d610e4d771c9b2a1f237ef63c4905e0`
-- **内容**：24 个 wheel（预编译二进制包）。PyYAML 与 greenlet 覆盖 **Python 3.9–3.13 / Windows 64 位**，另含 playwright、pytest 及全部依赖；附 `install.bat`
-- **用法**：下载 → 解压 → 双击 `install.bat` → 看到 `Done.` → 回到项目目录跑 `python -m dcf scan`。全程不联网，也不读 `requirements.txt`
-- `install.bat` 分两步装，第二步（playwright / pytest）是可选的，失败不影响通道 A
+| 包 | 体积 | 内容 | 什么时候用 |
+| --- | --- | --- | --- |
+| **[精简包（推荐）](https://github.com/Hazel-working/dcloud-cert-filler/releases/download/offline-v1/dcloud-cert-filler-lite-bundle.zip)** | **761 KB** | 5 个 PyYAML wheel（Python 3.9–3.13 / Windows 64 位）+ `install.bat` | 绝大多数情况。网络差、浏览器下不动大文件时尤其用它 |
+| [完整包](https://github.com/Hazel-working/dcloud-cert-filler/releases/download/offline-v1/dcloud-cert-filler-offline-bundle.zip) | 77 MB | 24 个 wheel，另含 Playwright、pytest 及全部依赖 | 以后要用通道 B 或跑单测时再下 |
+
+- 精简包 SHA-256：`8c9064669092643b23a35a6cb4da872f141191281f6e2f37d2bff3471a2e10e5`
+- 完整包 SHA-256：`0c6976f3587325b2fa147c0e70dadd516d610e4d771c9b2a1f237ef63c4905e0`
+- **备用入口**：精简包也随仓库放在 [`offline/`](offline/) 目录，下载仓库 ZIP 就自带，不必单独下 Release 资产。
+- **用法**：下载 → 解压 → 双击 `install.bat` → 看到 `Done.` → 回到项目目录跑 `python -m dcf scan`。全程不联网，也不读 `requirements.txt`。
+- 精简包只装 PyYAML；以后要跑通道 B 或 `pytest`，再下完整包或联网补装 playwright / pytest。
 
 想自己准备也可以：在有网的机器执行 `pip download -r requirements.txt -d wheels -i https://mirrors.aliyun.com/pypi/simple/`，把 `wheels` 拷过去执行 `python -m pip install --no-index --find-links=wheels -r requirements.txt`（两台机器的 Python 大版本尽量一致，PyYAML 有平台相关 wheel）。
 
@@ -289,6 +294,7 @@ dcloud-cert-filler/
 │   ├── cli.py                    编排：扫描 → 解析 → 校验 → 填写 → 人工确认 → 报告
 │   └── __main__.py               支持 python -m dcf
 ├── scripts/start_chrome_debug.bat 启动带调试端口的专用 Chrome
+├── offline/                      精简离线包（761 KB，随仓库提供，备用下载入口）
 ├── tests/                        解析层与目录发现单测 + 脱敏样例
 └── dist/                         运行产物（脚本、报告、截图），可随时删除
 ```

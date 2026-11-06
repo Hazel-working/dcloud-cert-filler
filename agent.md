@@ -60,6 +60,8 @@
 - 5 个包：`com.beikeyanshou.www`、`com.ritaiyanshou.www`、`com.test.demo`、`com.xingquangceshi.www`、`com.yanshou.www`。只有第 1 个已绑 `__UNI__1000B17`，其余 4 个 appid 待用户补。
 - `config/selectors.yaml` 的 placeholder **按截图推断，未在真实 DCloud 页面验证**，须由用户在打包机跑 `python -m dcf probe` 校准；`dcf/console_gen.py` 的通道 A 正则同样未经真实页面验证，首次使用最可能卡在这里。
 - 两条填表通道的定位规则未共用一份配置（详见第 5 节），是待统一项，不是已实现能力。
-- 离线依赖包发布在 GitHub Release **tag `offline-v1`**（资产 `dcloud-cert-filler-offline-bundle.zip`，约 77 MB，含 Python 3.9–3.13 / Windows 64 位 wheel 与 `install.bat`），**不进 Git 历史**——大文件进仓库会拖慢每次 clone。README 步骤 1 有下载直链与 SHA-256。若 `requirements.txt` 或支持的 Python 版本变更，必须重新生成 wheel、发布新 Release tag，并同步更新 README 里的链接与校验值。
+- 离线依赖发布在 GitHub Release **tag `offline-v1`**，两个资产：精简包 `dcloud-cert-filler-lite-bundle.zip`（761 KB，仅 PyYAML，**主推**）与完整包 `dcloud-cert-filler-offline-bundle.zip`（77 MB，含 Playwright/pytest）。77 MB 的包**不进 Git 历史**（>50 MB 会拖慢 clone）；精简包另复制一份在仓库 `offline/` 目录作为备用下载入口。README 步骤 1 有两个直链与 SHA-256。
+- **通道 A（`scan` / `check` / `console`）唯一第三方依赖是 PyYAML**：`dcf/cli.py` 顶层只导入 `config` / `console_gen` / `parser`，`filler` 与 `report` 在 `probe` / `run` 里才延迟导入。不要给这三条命令新增第三方依赖，否则精简包失效。
+- 若 `requirements.txt` 或支持的 Python 版本变更：重新生成两个包、用 `gh release upload offline-v1 ... --clobber` 覆盖资产，并同步更新 README 与 `offline/` 里的文件、链接和校验值。
 - `tests/` 的解析层与目录发现单测已写，但**从未在开发机执行过**（见第 3 条）。
 - `README.md` 与 `config/apps.yaml` 里的用户名、盘符描述以打包机 Administrator 为准。
