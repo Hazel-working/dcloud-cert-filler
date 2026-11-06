@@ -43,7 +43,8 @@
 - 扩展方式：新增包 = 在 `bindings` 加一行。txt 靠**内容**（含 `SHA256` 标记）发现，不靠文件名或扩展名；目录里有、清单里没有的包必须被 `scan` 报出且**不参与填写**；同目录多候选取修改时间最新的。
 - 防串号三道不可删：`appid` / `package` 去重 → txt 里的包名必须等于清单包名 → 落地页 URL 的 `appid` 二次比对。
 - 签名规范化：剔除所有非十六进制字符后按 MD5 16 组 / SHA1 20 组 / SHA256 32 组校验。记事本自动换行会从**字节中间**折断 SHA256，且折行行本身含冒号、易被误判成「字段行」——改解析器必须重跑 `tests/`。
-- `selectors.yaml` 用 CSS selector（CSS 选择器）按 placeholder（占位提示文本）定位，可写多个候选；DCloud 改版只改配置，不改代码。
+- **通道 B（Playwright）** 的定位规则外置在 `config/selectors.yaml`，用 CSS selector（CSS 选择器）按 placeholder（占位提示文本）定位，可写多个候选，改版只改配置。
+- **通道 A（Console）** 的定位正则目前硬编码在 `dcf/console_gen.py` 的 `FIELDS`，与 `selectors.yaml` **尚未共用**。这是已知不一致（见第 7 节），改版时两处都要考虑；若要统一，应让 `build_payload()` 接收 `settings.fields` 并把选择器内嵌进生成的 JS，同时保留 placeholder 正则作为兜底，不要只改一处。
 - Windows 路径在 YAML 里统一正斜杠 `/`。Python 3.10+。`.bat` 内只用 ASCII 文本，避免中文在非 UTF-8 控制台乱码。
 - 面向用户的文字里，技术英文术语首次出现要括号汉化。
 
@@ -56,6 +57,7 @@
 ## 7. 当前状态与未验证项
 
 - 5 个包：`com.beikeyanshou.www`、`com.ritaiyanshou.www`、`com.test.demo`、`com.xingquangceshi.www`、`com.yanshou.www`。只有第 1 个已绑 `__UNI__1000B17`，其余 4 个 appid 待用户补。
-- `config/selectors.yaml` 的 placeholder **按截图推断，未在真实 DCloud 页面验证**，须由用户在打包机跑 `python -m dcf probe` 校准。
+- `config/selectors.yaml` 的 placeholder **按截图推断，未在真实 DCloud 页面验证**，须由用户在打包机跑 `python -m dcf probe` 校准；`dcf/console_gen.py` 的通道 A 正则同样未经真实页面验证，首次使用最可能卡在这里。
+- 两条填表通道的定位规则未共用一份配置（详见第 5 节），是待统一项，不是已实现能力。
 - `tests/` 的解析层与目录发现单测已写，但**从未在开发机执行过**（见第 3 条）。
 - `README.md` 与 `config/apps.yaml` 里的用户名、盘符描述以打包机 Administrator 为准。

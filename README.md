@@ -114,6 +114,19 @@ python -m pytest tests -q
 
 > 它用原生 setter（属性赋值器）派发 `input` / `change` 事件（输入/变更事件），适配 SPA（单页应用）的受控输入框——直接改 `value` 在这种页面上是不生效的。
 
+**如果表里出现「未找到输入框」**：说明 DCloud 页面真实的 placeholder 和脚本里的匹配规则对不上（现有规则是按截图推断的，还没在真实页面验证过）。不用装调试 Chrome，就在当前 Console 里粘这一行，能看到页面上所有输入框的真实属性：
+
+```js
+$$('input,textarea').map((e,i)=>i+': '+(e.placeholder||'(无)')+' | name='+(e.name||'')+' | id='+(e.id||'')).join('\n')
+```
+
+拿到真实值后二选一：
+
+- 继续用通道 A：改 `dcf/console_gen.py` 里 `FIELDS` 的正则，重跑 `python -m dcf console` 生成新脚本；
+- 换通道 B：改 `config/selectors.yaml` 即可，**不用改代码**，按下面通道 B 的步骤跑一次 `probe` 确认后就能用。
+
+> 已知的不一致：通道 B 的定位规则外置在 `config/selectors.yaml`，通道 A 的定位正则目前写在 `dcf/console_gen.py`，两处还没共用同一份配置。只改版一次影响不大；如果 DCloud 频繁改版，建议把两者统一。
+
 ### 通道 B：Playwright 通道（自动切页，需要 appid）
 
 适用：appid 已补齐、要一次性把多个应用挨个填完、需要截图和报告留痕。
@@ -296,7 +309,8 @@ dcloud-cert-filler/
 | `未找到含 SHA256 的打包信息 txt` | txt 不在包文件夹第一层，或内容不含 `SHA256` 标记；检查 `scan.root` / `scan.txt_glob` / `content_marker` |
 | `SHA256 长度异常` | 记事本自动换行或复制不全。取原始 txt，不要从截图或 WPS 复制 |
 | `包名格式不合法` / 包名不一致 | 文件夹名与 txt 里的包名不同，统一其中一处 |
-| `未找到输入框` | 跑 `probe`，按真实 placeholder 修 `selectors.yaml` |
+| 通道 A 提示 `未找到输入框` | 用上面那行 Console 诊断命令看真实 placeholder，改 `dcf/console_gen.py` 的正则后重新生成脚本；或改用通道 B |
+| 通道 B 提示 `未找到输入框` | 跑 `probe`，按真实 placeholder 修 `config/selectors.yaml`，不用改代码 |
 | `回读不一致` | 页面组件未响应事件；优先改用 `run --driver cdp`（Playwright 的 `fill()` 已封装事件派发） |
 | `没有绑定 appid 的包` | 补 appid，或改用 `python -m dcf console` |
 | 调试端口连不上 | 确认 bat 启动的专用 Chrome 还开着，端口 9222 未被占用 |
