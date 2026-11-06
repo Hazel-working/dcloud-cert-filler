@@ -45,6 +45,16 @@ python --version
 python -m pip install -r requirements.txt
 ```
 
+**如果 pip 报 `SSLEOFError` / `Could not fetch URL https://pypi.org/...`**：这表示打包机直连 PyPI 时 TLS（传输层安全协议）握手被网络中间设备切断，不是包不存在；末尾跟着的 `No matching distribution found` 也是连不上源的次生报错。换国内镜像即可：
+
+```bat
+python -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+仍报证书错误就再加 `--trusted-host pypi.tuna.tsinghua.edu.cn`；机器上开着 VPN（虚拟专用网络）或系统代理时，先关掉再试。想一次配好，执行 `python -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple`，之后所有 `pip install` 自动走镜像。
+
+打包机**完全不能联网**时：在有网的机器上执行 `pip download -r requirements.txt -d wheels -i https://pypi.tuna.tsinghua.edu.cn/simple`，把 `wheels` 文件夹拷过去，再执行 `python -m pip install --no-index --find-links=wheels -r requirements.txt`（两台机器的 Python 大版本尽量一致，PyYAML 有平台相关 wheel）。
+
 **成功标志**：`python --version` 显示 3.10 及以上；pip 安装没有红色报错。如果提示「python 不是内部或外部命令」，说明装 Python 时没勾 Add Python to PATH，重装并勾上即可。
 
 > 只有改用 `--driver persistent`（让脚本自己启动浏览器）时，才需要额外执行 `python -m playwright install chromium`。默认 `--driver cdp` 不需要。
@@ -305,6 +315,7 @@ dcloud-cert-filler/
 | 现象 | 处理 |
 | --- | --- |
 | `python 不是内部或外部命令` | 装 Python 时没勾 Add Python to PATH，重装并勾选 |
+| pip 报 `SSLEOFError` / `Could not fetch URL https://pypi.org` / `No matching distribution found` | TLS 握手被切断，不是包缺失。换镜像 `-i https://pypi.tuna.tsinghua.edu.cn/simple`；关掉 VPN / 系统代理再试；或用离线 wheel 安装（见步骤 1） |
 | `扫描根目录不存在` | 改 `config/apps.yaml` 的 `scan.root`，确认打包机 F 盘路径 |
 | `未找到含 SHA256 的打包信息 txt` | txt 不在包文件夹第一层，或内容不含 `SHA256` 标记；检查 `scan.root` / `scan.txt_glob` / `content_marker` |
 | `SHA256 长度异常` | 记事本自动换行或复制不全。取原始 txt，不要从截图或 WPS 复制 |
