@@ -16,7 +16,7 @@ scan:
 bindings:
   - appid: "__UNI__1000B17"
     package: "com.beikeyanshou.www"
-    name: "测试星泉"
+    name: ""                          # 备注名；留空则生成的文件里不显示括号
     enabled: true
 
   - appid: ""

@@ -274,7 +274,7 @@ scan:
 bindings:
   - appid: "__UNI__1000B17"         # DCloud 地址栏 ?appid= 的值；留空则只走通道 A
     package: "com.beikeyanshou.www" # 必须等于 output 下的文件夹名，也是要填进表单的包名
-    name: "测试星泉"                 # 仅用于日志与报告，可留空
+    name: ""                          # 备注名，仅用于弹窗/下拉/日志显示；留空则不显示括号
     enabled: true                   # 临时停用某个包改 false
 ```
 
